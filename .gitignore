@@ -35,3 +35,10 @@ next-env.d.ts
 
 # ai dev log
 .ai-dev-log/
+
+# kiro workspace files
+.kiro/
+
+# project planning documents (keep in separate repo or docs folder if needed)
+*_PRD.md
+*_prd.md
