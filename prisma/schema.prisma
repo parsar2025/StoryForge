@@ -1,0 +1,219 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  createdAt DateTime  @default(now())
+  character Character?
+}
+
+model Character {
+  id                   String               @id @default(cuid())
+  userId               String               @unique
+  user                 User                 @relation(fields: [userId], references: [id])
+  name                 String
+  campaign             String               @default("Become Entrepreneur")
+  level                Int                  @default(1)
+  totalXp              Int                  @default(0)
+  currentTitle         String               @default("Novice Builder")
+  lastBriefingGameDate DateTime?            @db.Date
+  skillTrees           SkillTree[]
+  quests               Quest[]
+  projects             Project[]
+  resources            Resource[]
+  activityLogs         ActivityLog[]
+  chapters             StoryChapter[]
+  buffs                StatusEffect[]
+  achievements         Achievement[]
+  mentorConversations  MentorConversation[]
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+}
+
+enum TreeCategory {
+  CORE
+  SUPPORT
+}
+
+// The 11 leveled trees — see Section 5 for the full seed list.
+model SkillTree {
+  id            String       @id @default(cuid())
+  characterId   String
+  character     Character    @relation(fields: [characterId], references: [id])
+  key           String       // e.g. "OPPORTUNITY_HUNTER" — matches lib/game/skillTrees.ts
+  displayName   String       // e.g. "Opportunity Hunter"
+  emoji         String
+  category      TreeCategory
+  level         Int          @default(1)
+  xp            Int          @default(0)
+  xpToNextLevel Int          @default(100)
+  quests        Quest[]
+  resources     Resource[]
+  createdAt     DateTime     @default(now())
+
+  @@unique([characterId, key])
+}
+
+enum QuestType {
+  DAILY
+  WEEKLY
+  EPIC
+  BOSS
+  MAINTENANCE
+}
+
+enum QuestStatus {
+  AVAILABLE
+  ACTIVE
+  COMPLETED
+  FAILED
+  ARCHIVED
+}
+
+model Quest {
+  id                 String        @id @default(cuid())
+  characterId        String
+  character          Character     @relation(fields: [characterId], references: [id])
+  projectId          String?
+  project            Project?      @relation(fields: [projectId], references: [id])
+  title              String
+  description        String
+  type               QuestType
+  status             QuestStatus   @default(AVAILABLE)
+  difficulty         Int
+  estimatedMinutes   Int
+  xpReward           Int
+  relatedTreeIds     String[]      // SkillTree ids — where XP actually goes
+  trees              SkillTree[]
+  subSkillTags       String[]      // freeform tags from lib/game/skillTrees.ts's sub-skill lists — analytics only, not leveled
+  prerequisiteId     String?
+  phaseOrder         Int?
+  deadline           DateTime?
+  completionCriteria String
+  sourceInput        String?
+  aiGenerated        Boolean       @default(true)
+  createdAt          DateTime      @default(now())
+  completedAt        DateTime?
+  activityLogs       ActivityLog[]
+}
+
+model Project {
+  id          String    @id @default(cuid())
+  characterId String
+  character   Character @relation(fields: [characterId], references: [id])
+  name        String
+  description String
+  quests      Quest[]
+  xpEarned    Int       @default(0)
+  status      String    @default("ACTIVE")
+  createdAt   DateTime  @default(now())
+}
+
+model Resource {
+  id           String      @id @default(cuid())
+  characterId  String
+  character    Character   @relation(fields: [characterId], references: [id])
+  type         String      // BOOK, COURSE, VIDEO, ARTICLE, IDEA, MENTOR
+  title        String
+  author       String?
+  url          String?
+  treeIds      String[]
+  trees        SkillTree[]
+  subSkillTags String[]
+  progress     Int         @default(0)
+  notes        String?
+  createdAt    DateTime    @default(now())
+}
+
+model ActivityLog {
+  id          String    @id @default(cuid())
+  characterId String
+  character   Character @relation(fields: [characterId], references: [id])
+  questId     String?
+  quest       Quest?    @relation(fields: [questId], references: [id])
+  startTime   DateTime
+  endTime     DateTime?
+  durationMin Int?
+  notes       String?
+  mood        String?
+  difficulty  Int?
+  reflection  String?
+  xpAwarded   Int       @default(0)
+  createdAt   DateTime  @default(now())
+}
+
+enum ChapterTrigger {
+  DAILY_BRIEFING
+  MILESTONE
+  MANUAL
+}
+
+model StoryChapter {
+  id             String         @id @default(cuid())
+  characterId    String
+  character      Character      @relation(fields: [characterId], references: [id])
+  chapterNum     Int
+  title          String
+  excerpt        String         @db.Text
+  narrative      String?        @db.Text
+  triggerType    ChapterTrigger
+  relatedQuestId String?
+  relatedTreeIds String[]
+  gameDate       DateTime?      @db.Date
+  seenAt         DateTime?
+  createdAt      DateTime       @default(now())
+}
+
+// Buffs/debuffs — deterministic rules only (Section 9), never AI-judged.
+model StatusEffect {
+  id          String    @id @default(cuid())
+  characterId String
+  character   Character @relation(fields: [characterId], references: [id])
+  type        String    // BUFF or DEBUFF
+  name        String
+  description String
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+// Legendary Skill unlocks — also deterministic (Section 5.4 / Section 9), fires a MILESTONE chapter.
+model Achievement {
+  id          String    @id @default(cuid())
+  characterId String
+  character   Character @relation(fields: [characterId], references: [id])
+  key         String    // e.g. "FOUNDERS_INTUITION"
+  name        String
+  description String
+  unlockedAt  DateTime  @default(now())
+
+  @@unique([characterId, key])
+}
+
+model MentorConversation {
+  id          String          @id @default(cuid())
+  characterId String
+  character   Character       @relation(fields: [characterId], references: [id])
+  title       String?
+  messages    MentorMessage[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+model MentorMessage {
+  id             String             @id @default(cuid())
+  conversationId String
+  conversation   MentorConversation @relation(fields: [conversationId], references: [id])
+  role           String             // "user" | "assistant"
+  content        String             @db.Text
+  createdAt      DateTime           @default(now())
+}
