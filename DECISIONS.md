@@ -170,3 +170,34 @@ Decisions deferred to later phases:
 - **Test framework** (Phase 1) - Jest vs Vitest, property-based testing library
 
 These will be logged here as they're decided.
+
+## [2026-07-06] Vercel Deployment — Transaction Pooler vs Session Pooler
+
+**Context**: Vercel Route Handlers run as short-lived serverless functions. Supabase offers three connection types: Direct, Session pooler, and Transaction pooler.
+
+**Decision**: Use different `DATABASE_URL` values for local dev and Vercel:
+- **Local `.env.local`**: Session pooler string (standard port 5432) — fine for a single persistent dev process.
+- **Vercel environment variables**: Transaction pooler string (port 6543, `?pgbouncer=true` appended) — built for short-lived serverless connections.
+
+**Consequences**:
+- ✅ Avoids connection exhaustion on Supabase's free tier under serverless traffic
+- ✅ Each Vercel function invocation borrows a connection from the pool instead of opening a dedicated one
+- ⚠️ The two `DATABASE_URL` values are intentionally different — this is expected, not a misconfiguration
+- ⚠️ The Transaction pooler does not support `prisma migrate dev/deploy` — run migrations manually from local machine before deploying schema changes: `npx prisma migrate deploy`
+
+**Rationale**: PRD Section 12.1 explicitly calls this out. Wiring migrations into Vercel's build step is intentionally avoided — a failed mid-deploy migration is a worse failure mode than a deliberate manual step for a single-user app.
+
+---
+
+## [2026-07-06] Preview Deployments Share Production Database
+
+**Context**: Vercel auto-deploys preview URLs per PR/branch. There is only one Supabase database in v1.
+
+**Decision**: Accept that preview deployments talk to the same production Supabase database.
+
+**Consequences**:
+- ✅ No extra cost or setup for a staging database
+- ⚠️ A preview build with a bug that writes bad data corrupts real journal/XP, not a sandbox
+- ⚠️ If this becomes a problem: create a second free Supabase project for staging and set separate env vars per Vercel environment (Production vs Preview)
+
+**Rationale**: Single-user app, no other users affected. PRD Section 12.1 explicitly notes this trade-off is acceptable until it's actually a problem.
