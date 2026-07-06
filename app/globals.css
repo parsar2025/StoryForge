@@ -9,10 +9,12 @@
   }
 
   * {
-    @apply border-border;
+    border-color: hsl(210, 40%, 25%);
   }
   
   body {
-    @apply bg-background text-foreground font-sans;
+    background-color: hsl(220, 15%, 8%);
+    color: hsl(210, 40%, 98%);
+    font-family: var(--font-sans);
   }
 }
