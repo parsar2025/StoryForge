@@ -16,6 +16,22 @@ Each decision follows this structure:
 
 ---
 
+## [2026-07-06] Next.js 16 Middleware → Proxy Convention
+
+**Context**: Next.js 16 deprecated the `middleware.ts` filename in favor of `proxy.ts` to better reflect its role in the request pipeline.
+
+**Decision**: Rename `middleware.ts` → `proxy.ts` and `middleware()` function → `proxy()`
+
+**Consequences**:
+- ✅ Eliminates deprecation warning in Next.js 16
+- ✅ Aligns with Next.js 16 conventions
+- ⚠️ Different from Next.js 13-15 tutorials/examples
+- ⚠️ Must remember to look for `proxy.ts` not `middleware.ts` in file tree
+
+**Implementation**: File renamed to `proxy.ts`, export changed to `export async function proxy(request: NextRequest)`. Functionality unchanged — still handles route protection and auth redirects.
+
+---
+
 ## [2026-07-06] Next.js 16 with App Router
 
 **Context**: Need to choose a React framework for the application

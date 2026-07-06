@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Add postinstall script to generate Prisma Client for Vercel builds ([91fa5c1](https://github.com/parsar2025/StoryForge/commit/91fa5c1))
+- Remove @apply directives for Tailwind v4 compatibility ([da81ac0](https://github.com/parsar2025/StoryForge/commit/da81ac0))
+
+### Changed
+- Add tsx dependency and wire Prisma seed script for Phase 1 ([87b9a75](https://github.com/parsar2025/StoryForge/commit/87b9a75))
+- Add ESLint config, additional shadcn/ui components, Vercel CLI ([416434b](https://github.com/parsar2025/StoryForge/commit/416434b))
+- Document Transaction vs Session pooler trade-offs in DECISIONS.md ([416434b](https://github.com/parsar2025/StoryForge/commit/416434b))
+
 ## [0.1.0] - 2026-07-06
 
 ### Added
@@ -17,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Complete Prisma schema with all 13 models from PRD
 - Supabase authentication integration
 - Login page with email/password form
-- Authentication middleware for route protection
+- Authentication middleware (`proxy.ts`) for route protection
 - Dashboard shell displaying user email
 - Sign-out API route
 - Environment variable validation module
