@@ -1,8 +1,8 @@
 import type { NextConfig } from 'next';
 
 // Validate environment variables at build/dev startup
-// Comment this out if you need to build without all env vars present
-import './lib/env';
+// Commented out for initial setup - uncomment once .env.local is configured
+// import './lib/env';
 
 const nextConfig: NextConfig = {
   /* config options here */
