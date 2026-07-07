@@ -1,6 +1,6 @@
 /**
- * Character Creation Service
- * 
+ * Character Provisioning Service
+ *
  * Handles automatic character provisioning with skill tree seeding.
  * Creates exactly one Character per User with all 11 skill trees
  * on first login (no user-facing creation UI).
