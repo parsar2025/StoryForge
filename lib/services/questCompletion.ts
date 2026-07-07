@@ -22,6 +22,30 @@ import { detectNovelTrees } from '@/lib/game/noveltyDetector';
 import type { Quest, SkillTree } from '@prisma/client';
 
 /**
+ * Compute character level from cumulative total XP.
+ * 
+ * Character level is derived from totalXp by subtracting thresholds starting from level 1.
+ * This ensures level-ups happen at exactly the right cumulative XP values specified by
+ * the exponential curve (100, 364, 830, ...) regardless of how XP was gained.
+ * 
+ * @param cumulativeXp - Lifetime total XP earned
+ * @returns Character level (minimum 1)
+ */
+function computeLevelFromCumulativeXp(cumulativeXp: number): number {
+  let level = 1;
+  let remaining = cumulativeXp;
+  let threshold = computeXpToNextLevel(level);
+  
+  while (remaining >= threshold) {
+    remaining -= threshold;
+    level++;
+    threshold = computeXpToNextLevel(level);
+  }
+  
+  return level;
+}
+
+/**
  * Result of quest completion with all affected entities and XP breakdown.
  */
 export interface QuestCompletionResult {
@@ -152,7 +176,7 @@ export async function completeQuest(
     
     for (let i = 0; i < quest.relatedTreeIds.length; i++) {
       const treeId = quest.relatedTreeIds[i];
-      const xpToAdd = xpPerTree[i];
+      const xpToAdd = xpPerTree[i].xp;
       
       // Fetch current tree state
       const tree = await tx.skillTree.findUniqueOrThrow({
@@ -194,22 +218,14 @@ export async function completeQuest(
       }
     }
     
-    // Update character totalXp and check for character level-up
+    // Update character totalXp and recompute level from cumulative XP
     const character = await tx.character.findUniqueOrThrow({
       where: { id: characterId }
     });
     
     const oldCharLevel = character.level;
-    let newCharXp = character.totalXp + totalXP;
-    let newCharLevel = character.level;
-    let newCharXpToNextLevel = computeXpToNextLevel(character.level);
-    
-    // Check for character level-up(s)
-    while (newCharXp >= newCharXpToNextLevel) {
-      newCharXp -= newCharXpToNextLevel;
-      newCharLevel++;
-      newCharXpToNextLevel = computeXpToNextLevel(newCharLevel);
-    }
+    const newTotalXp = character.totalXp + totalXP;
+    const newCharLevel = computeLevelFromCumulativeXp(newTotalXp);
     
     // Update character title if level changed
     const newTitle = newCharLevel > oldCharLevel
@@ -219,22 +235,22 @@ export async function completeQuest(
     await tx.character.update({
       where: { id: characterId },
       data: {
-        totalXp: character.totalXp + totalXP, // Store cumulative total XP
+        totalXp: newTotalXp,
         level: newCharLevel,
         currentTitle: newTitle
       }
     });
     
-    // Update all activity logs with xpAwarded
-    const xpPerLog = Math.floor(totalXP / quest.activityLogs.length);
-    await tx.activityLog.updateMany({
-      where: {
-        questId: questId
-      },
-      data: {
-        xpAwarded: xpPerLog
-      }
-    });
+    // Update all activity logs with xpAwarded (distribute fairly like trees)
+    const activityLogIds = quest.activityLogs.map(log => log.id);
+    const xpPerLogDistribution = distributeXP(totalXP, activityLogIds);
+    
+    for (let i = 0; i < activityLogIds.length; i++) {
+      await tx.activityLog.update({
+        where: { id: activityLogIds[i] },
+        data: { xpAwarded: xpPerLogDistribution[i].xp }
+      });
+    }
     
     // Build character level-up result if it occurred
     const characterLevelUp: QuestCompletionResult['characterLevelUp'] = 
