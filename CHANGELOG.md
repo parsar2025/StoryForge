@@ -7,7 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- XP Engine with reflection quality analysis, difficulty multipliers, and bonus system ([950d246](https://github.com/parsar2025/StoryForge/commit/950d246))
+- Fair XP distribution algorithm across skill trees with property-based tests ([879a909](https://github.com/parsar2025/StoryForge/commit/879a909))
+- Exponential level formula (100, 364, 830, ...) with convergence tests ([c142296](https://github.com/parsar2025/StoryForge/commit/c142296))
+- Skill tree and title progression configuration ([f0cf8e8](https://github.com/parsar2025/StoryForge/commit/f0cf8e8))
+- ValidationService for tree IDs, sub-skill tags, difficulty, quest types ([e0aaab7](https://github.com/parsar2025/StoryForge/commit/e0aaab7))
+- API error response and logging utilities ([0c121d6](https://github.com/parsar2025/StoryForge/commit/0c121d6))
+- Jest and fast-check for unit and property-based testing ([80398df](https://github.com/parsar2025/StoryForge/commit/80398df))
+
 ### Fixed
+- Character level computation now uses cumulative XP instead of per-level residual ([bcb6c23](https://github.com/parsar2025/StoryForge/commit/bcb6c23))
+- Activity log XP distribution now uses fair distribution algorithm ([bcb6c23](https://github.com/parsar2025/StoryForge/commit/bcb6c23))
 - Add postinstall script to generate Prisma Client for Vercel builds ([91fa5c1](https://github.com/parsar2025/StoryForge/commit/91fa5c1))
 - Remove @apply directives for Tailwind v4 compatibility ([da81ac0](https://github.com/parsar2025/StoryForge/commit/da81ac0))
 

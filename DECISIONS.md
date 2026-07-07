@@ -217,3 +217,22 @@ These will be logged here as they're decided.
 - ⚠️ If this becomes a problem: create a second free Supabase project for staging and set separate env vars per Vercel environment (Production vs Preview)
 
 **Rationale**: Single-user app, no other users affected. PRD Section 12.1 explicitly notes this trade-off is acceptable until it's actually a problem.
+
+---
+
+## [2026-07-07] Character Level Computation: Cumulative XP
+
+**Context**: Character leveling needs to track total lifetime XP and derive level from it. Initial implementation used a "remaining XP" approach that subtracted thresholds incrementally, which could lose precision across multiple quest completions.
+
+**Decision**: Store cumulative `totalXp` in Character model and compute level by iterating from level 1, subtracting each threshold (100, 364, 830, ...) until XP is exhausted.
+
+**Consequences**:
+- ✅ Level-ups happen at exactly the right cumulative XP values (100, 364, 830, ...) regardless of how XP was gained
+- ✅ Matches the exponential formula: `computeLevelFromCumulativeXp()` re-derives level from scratch each time
+- ✅ No precision loss or drift across multiple completions
+- ✅ Character database field is cumulative total, not current level's residual XP
+- ⚠️ Slightly more computation per quest completion (iterates through thresholds), but negligible for realistic levels
+
+**Implementation**: Added `computeLevelFromCumulativeXp()` helper in `questCompletion.ts` that walks forward from level 1 until cumulative XP runs out. Character update stores `totalXp` (cumulative) and recomputes `level` deterministically.
+
+**Related**: Activity log XP distribution also fixed to use fair distribution algorithm matching tree distribution (prevents XP loss due to integer rounding).
