@@ -23,9 +23,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove @apply directives for Tailwind v4 compatibility ([da81ac0](https://github.com/parsar2025/StoryForge/commit/da81ac0))
 
 ### Changed
+- Phase 1 scope refinement: silent character provisioning (one Character per User, name defaults to "Founder"); renamed `CharacterCreationService` → `CharacterProvisioningService`
+- Time tracking is now manual entry only (no live timer/pause): `ActivityLog` uses `workedOn` + required `durationMin`; multi-session = multiple entries summed at completion
+- Streak now counts consecutive days with a logged time entry (cached on `Character.streakDays`) rather than completion days
+- Regenerated init migration to match the refined Phase 1 model
 - Add tsx dependency and wire Prisma seed script for Phase 1 ([87b9a75](https://github.com/parsar2025/StoryForge/commit/87b9a75))
 - Add ESLint config, additional shadcn/ui components, Vercel CLI ([416434b](https://github.com/parsar2025/StoryForge/commit/416434b))
 - Document Transaction vs Session pooler trade-offs in DECISIONS.md ([416434b](https://github.com/parsar2025/StoryForge/commit/416434b))
+
+### Removed
+- `Project` model, `Quest.projectId`, and the `/api/projects` endpoints — cross-tree initiatives are now EPIC quests grouping sub-quests via `Quest.parentQuestId`
 
 ## [0.1.0] - 2026-07-06
 
