@@ -33,15 +33,27 @@ export interface CharacterWithTrees extends Character {
  * 4. Handle unique constraint violations by retrying query once
  * 
  * @param userId - Supabase user ID from authenticated session
+ * @param email - Supabase user email (used to upsert the local User row)
  * @returns Character with all 11 skill trees
  * @throws Error if transaction fails or trees cannot be seeded
- * 
+ *
  * @example
- * const character = await getOrCreateCharacter(session.user.id);
+ * const character = await getOrCreateCharacter(user.id, user.email);
  * // character.skillTrees.length === 11
  * // character.name === "Founder" (default, user can rename later)
  */
-export async function getOrCreateCharacter(userId: string): Promise<CharacterWithTrees> {
+export async function getOrCreateCharacter(
+  userId: string,
+  email: string
+): Promise<CharacterWithTrees> {
+  // 0. Ensure the local User row exists (Character.userId FK → User.id).
+  // Supabase Auth owns auth.users; this mirrors it into public.User.
+  await prisma.user.upsert({
+    where: { id: userId },
+    update: {},
+    create: { id: userId, email }
+  });
+
   // 1. Check for existing character (idempotency)
   const existing = await prisma.character.findUnique({
     where: { userId },

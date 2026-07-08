@@ -19,17 +19,19 @@ export interface RequestContext {
 }
 
 /**
- * Resolve the authenticated user id from the Supabase session.
+ * Resolve the authenticated user (id + email) from the Supabase session.
  *
- * @returns The user id, or null if no valid session.
+ * @returns The user, or null if no valid session.
  */
-export async function getUserId(): Promise<string | null> {
+export async function getAuthUser(): Promise<{ id: string; email: string } | null> {
   const supabase = await createClient();
   const {
     data: { user }
   } = await supabase.auth.getUser();
 
-  return user?.id ?? null;
+  if (!user) return null;
+
+  return { id: user.id, email: user.email ?? `${user.id}@no-email.local` };
 }
 
 /**
@@ -41,13 +43,13 @@ export async function getUserId(): Promise<string | null> {
 export async function requireCharacter(): Promise<
   { context: RequestContext; response?: never } | { context?: never; response: Response }
 > {
-  const userId = await getUserId();
+  const user = await getAuthUser();
 
-  if (!userId) {
+  if (!user) {
     return { response: ErrorResponses.unauthorized() };
   }
 
-  const character = await getOrCreateCharacter(userId);
+  const character = await getOrCreateCharacter(user.id, user.email);
 
-  return { context: { userId, character } };
+  return { context: { userId: user.id, character } };
 }
