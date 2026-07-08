@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Character API: `GET`/`PATCH /api/character` (auto-provision, rename)
+- Skill trees API: `GET /api/skill-trees` (11 trees, CORE-first ordering)
+- Quest API: `GET`/`POST /api/quests`, `PATCH`/`DELETE /api/quests/[id]`, `POST /api/quests/[id]/complete`
+- Activity log API: `POST`/`GET /api/activity-log`, `PATCH`/`DELETE /api/activity-log/[id]` (manual time entry, sub-skill tag filter)
+- Resource API: `GET`/`POST /api/resources`, `PATCH`/`DELETE /api/resources/[id]`
+- ActivityLogService for manual time entries with cached-streak recompute
+- Shared API session helper (`lib/api/session.ts`) for auth + character resolution
 - XP Engine with reflection quality analysis, difficulty multipliers, and bonus system ([950d246](https://github.com/parsar2025/StoryForge/commit/950d246))
 - Fair XP distribution algorithm across skill trees with property-based tests ([879a909](https://github.com/parsar2025/StoryForge/commit/879a909))
 - Exponential level formula (100, 364, 830, ...) with convergence tests ([c142296](https://github.com/parsar2025/StoryForge/commit/c142296))

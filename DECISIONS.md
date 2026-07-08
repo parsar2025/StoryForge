@@ -253,3 +253,27 @@ These will be logged here as they're decided.
 - "Pause/resume" was explicitly considered and rejected as cost without new capability (two entries already express it).
 
 **Related**: [[character-level-cumulative-xp]] leveling unaffected; XP distribution across trees unchanged.
+
+## [2026-07-07] Phase 1 API Layer: Implicit M2M, Shared Session Helper, Cached-Streak Writes
+
+**Context**: Implementing the Phase 1 REST endpoints (character, skill-trees, quests, activity-log, resources) surfaced three implementation choices the spec left to the agent (tasks 10.3, design doc "Data Model Notes").
+
+**Decision**:
+1. **Kept Prisma implicit many-to-many** for `Quest.trees`/`relatedTreeIds` and `Resource.trees`/`treeIds` — did NOT fall back to explicit join tables. `relatedTreeIds`/`treeIds` scalar arrays remain the source of truth for XP routing; the `trees` relation is connected in parallel (`connect`/`set`) purely for `include` convenience on reads. Both stay in sync in the same write.
+2. **Shared session helper** (`lib/api/session.ts`, `requireCharacter()`) resolves the Supabase user and auto-provisions the character in one call, returning either a context or a ready 401. Every route uses it instead of repeating auth boilerplate.
+3. **Streak cache written on every time-entry mutation** — `ActivityLogService` calls `updateCachedStreak()` after create/delete and after an update that changes `workedOn` (Req 18.5). Recompute-on-write chosen over recompute-on-read; per design doc the query cost is negligible at single-user volume.
+
+**Consequences**:
+- ✅ No schema migration needed; array + relation dual-write keeps reads ergonomic without a join model.
+- ⚠️ The array and the relation must be written together — a future writer that sets only one will drift. Centralized in the quest/resource POST/PATCH handlers to contain this.
+- ✅ Auth/provisioning logic lives in one place; routes stay thin.
+- ⚠️ Streak recompute runs an extra query per time-entry write; acceptable now, revisit only if profiling shows cost.
+
+**Related**: [[phase-1-scope-refinement]] streak-days model; [[character-level-cumulative-xp]] unaffected.
+
+---
+
+## Manual Acceptance (task 10.2) — Deferred
+
+The Phase 1 manual testing checklist (dev server + live login + full quest loop) has not been executed. It is Phase 1 acceptance criteria for tagging `v0.2.0` and requires a running app against the Supabase DB. Integration tests (tasks 2.4, 2.8, 4.4, 5.6, 6.6, 7.5, 10.1) remain unchecked by decision — no isolated test database is configured, and they are marked optional in `tasks.md`.
+
