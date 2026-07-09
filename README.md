@@ -4,7 +4,7 @@
 
 StoryForge is an RPG-style application that gamifies your entrepreneurial journey. Real actions (customer calls, shipped features, reading) become quests, XP, skill growth, and a narrated story.
 
-![Version](https://img.shields.io/badge/version-0.1.0-blue)
+![Version](https://img.shields.io/badge/version-0.2.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## ✨ Features
@@ -23,14 +23,14 @@ StoryForge is an RPG-style application that gamifies your entrepreneurial journe
 - **Database**: PostgreSQL (via Supabase)
 - **ORM**: Prisma
 - **Authentication**: Supabase Auth
-- **AI**: OpenAI API (Phase 3+)
+- **AI**: Anthropic Claude API (`@anthropic-ai/sdk`, model `claude-opus-4-8`) — wired in Phase 3+
 - **Deployment**: Vercel
 
 ## 📋 Prerequisites
 
-- Node.js 18+ 
+- Node.js 20.19+ (required by Next.js 16 and Prisma 7; Anthropic SDK also needs Node 20 LTS+)
 - A Supabase account ([supabase.com](https://supabase.com))
-- OpenAI API key (for Phase 3+)
+- An Anthropic API key (for Phase 3+)
 
 ## 🚀 Setup Instructions
 
@@ -59,12 +59,13 @@ Required variables:
 - `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` - Your Supabase publishable key (safe for browser)
 - `DATABASE_URL` - Your Supabase Postgres connection string (use Session Pooler, not Direct)
-- `OPENAI_API_KEY` - Your OpenAI API key (not used in Phase 0)
+- `ANTHROPIC_API_KEY` - Your Anthropic API key (not used until Phase 3)
+- `ANTHROPIC_BASE_URL` - Optional. Override the Claude API endpoint (e.g. a gateway/proxy). Omit to use the default `https://api.anthropic.com`
 
 Get these from:
 - **Supabase keys**: Click the **Connect** button at the top of your Supabase project dashboard, or go to Project Settings → API Keys
 - **Database URL**: Click **Connect** button → Choose "Session pooler" tab (not Direct connection)
-- **OpenAI**: [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+- **Anthropic**: [console.anthropic.com](https://console.anthropic.com) → API Keys
 
 ### 4. Run database migrations
 
@@ -102,7 +103,7 @@ Since this is a single-user app, create your account directly in Supabase:
 ## 🗺️ Roadmap
 
 - **Phase 0** (v0.1.0) ✅ - Scaffolding & authentication
-- **Phase 1** (v0.2.0) - Core CRUD + Skill Tree seeding
+- **Phase 1** (v0.2.0) ✅ - Core CRUD + Skill Tree seeding
 - **Phase 2** (v0.3.0) - Dashboard with progress bars
 - **Phase 3** (v0.4.0) - Dungeon Master quest generation
 - **Phase 4** (v0.5.0) - Historian & milestones
@@ -120,4 +121,4 @@ Built with inspiration from Civilization VI's era score system and classic RPG p
 
 ---
 
-**Current Version**: Phase 0 (v0.1.0) - Scaffolding Complete
+**Current Version**: Phase 1 (v0.2.0) - Core CRUD + Skill Tree Seeding Complete

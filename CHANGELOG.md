@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- AI provider is Anthropic Claude (not OpenAI): docs and `.env.example` now specify `@anthropic-ai/sdk`, model `claude-opus-4-8`, `ANTHROPIC_API_KEY`, and optional `ANTHROPIC_BASE_URL` (SDK `baseURL`). Client/config/dependency code is migrated when the AI client is wired in Phase 3.
+- Documentation refreshed for Phase 1: README status/roadmap to v0.2.0, ARCHITECTURE folder tree + API routes, removed stale `Project` model reference, Node.js requirement corrected to 20.19+.
+
+## [0.2.0] - 2026-07-09
+
 ### Added
 - Character API: `GET`/`PATCH /api/character` (auto-provision, rename)
 - Skill trees API: `GET /api/skill-trees` (11 trees, CORE-first ordering)
@@ -79,4 +85,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All 11 skill trees defined in schema, ready for Phase 1 seeding
 - Environment validation temporarily disabled for initial setup
 
+[0.2.0]: https://github.com/parsar2025/StoryForge/releases/tag/v0.2.0
 [0.1.0]: https://github.com/parsar2025/StoryForge/releases/tag/v0.1.0
