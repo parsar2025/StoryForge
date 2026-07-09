@@ -20,15 +20,15 @@ model Character {
   id                   String               @id @default(cuid())
   userId               String               @unique
   user                 User                 @relation(fields: [userId], references: [id])
-  name                 String
+  name                 String               @default("Founder") // auto-provisioned; user can rename via PATCH /api/character
   campaign             String               @default("Become Entrepreneur")
   level                Int                  @default(1)
   totalXp              Int                  @default(0)
   currentTitle         String               @default("Novice Builder")
+  streakDays           Int                  @default(0) // cached: consecutive days with a logged time entry
   lastBriefingGameDate DateTime?            @db.Date
   skillTrees           SkillTree[]
   quests               Quest[]
-  projects             Project[]
   resources            Resource[]
   activityLogs         ActivityLog[]
   chapters             StoryChapter[]
@@ -83,8 +83,9 @@ model Quest {
   id                 String        @id @default(cuid())
   characterId        String
   character          Character     @relation(fields: [characterId], references: [id])
-  projectId          String?
-  project            Project?      @relation(fields: [projectId], references: [id])
+  parentQuestId      String?       // set on a sub-quest → points at its EPIC umbrella (replaces the removed Project)
+  parentQuest        Quest?        @relation("EpicSubQuests", fields: [parentQuestId], references: [id])
+  subQuests          Quest[]       @relation("EpicSubQuests")
   title              String
   description        String
   type               QuestType
@@ -95,8 +96,8 @@ model Quest {
   relatedTreeIds     String[]      // SkillTree ids — where XP actually goes
   trees              SkillTree[]
   subSkillTags       String[]      // freeform tags from lib/game/skillTrees.ts's sub-skill lists — analytics only, not leveled
-  prerequisiteId     String?
-  phaseOrder         Int?
+  prerequisiteId     String?       // hard "must be done first" dependency (not enforced in Phase 1)
+  phaseOrder         Int?          // null = unordered sub-quest; set to order sub-quests within an epic
   deadline           DateTime?
   completionCriteria String
   sourceInput        String?
@@ -104,18 +105,6 @@ model Quest {
   createdAt          DateTime      @default(now())
   completedAt        DateTime?
   activityLogs       ActivityLog[]
-}
-
-model Project {
-  id          String    @id @default(cuid())
-  characterId String
-  character   Character @relation(fields: [characterId], references: [id])
-  name        String
-  description String
-  quests      Quest[]
-  xpEarned    Int       @default(0)
-  status      String    @default("ACTIVE")
-  createdAt   DateTime  @default(now())
 }
 
 model Resource {
@@ -134,20 +123,21 @@ model Resource {
   createdAt    DateTime    @default(now())
 }
 
+// A manually-entered time entry (minutes worked on a quest on a given day).
+// No live timer/pause: multi-session work = multiple entries, summed at completion.
 model ActivityLog {
   id          String    @id @default(cuid())
   characterId String
   character   Character @relation(fields: [characterId], references: [id])
   questId     String?
   quest       Quest?    @relation(fields: [questId], references: [id])
-  startTime   DateTime
-  endTime     DateTime?
-  durationMin Int?
+  workedOn    DateTime  @db.Date // the day the work happened; drives streak/novelty. Defaults to today at creation.
+  durationMin Int // minutes worked, entered manually (from the user's notebook)
   notes       String?
   mood        String?
   difficulty  Int?
   reflection  String?
-  xpAwarded   Int       @default(0)
+  xpAwarded   Int       @default(0) // stays 0 until the quest is completed
   createdAt   DateTime  @default(now())
 }
 

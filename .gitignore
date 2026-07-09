@@ -42,3 +42,6 @@ next-env.d.ts
 # project planning documents (keep in separate repo or docs folder if needed)
 *_PRD.md
 *_prd.md
+
+# Claude Rules
+CLAUDE.md

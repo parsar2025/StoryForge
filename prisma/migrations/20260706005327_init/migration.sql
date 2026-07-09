@@ -23,11 +23,12 @@ CREATE TABLE "User" (
 CREATE TABLE "Character" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
+    "name" TEXT NOT NULL DEFAULT 'Founder',
     "campaign" TEXT NOT NULL DEFAULT 'Become Entrepreneur',
     "level" INTEGER NOT NULL DEFAULT 1,
     "totalXp" INTEGER NOT NULL DEFAULT 0,
     "currentTitle" TEXT NOT NULL DEFAULT 'Novice Builder',
+    "streakDays" INTEGER NOT NULL DEFAULT 0,
     "lastBriefingGameDate" DATE,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -55,7 +56,7 @@ CREATE TABLE "SkillTree" (
 CREATE TABLE "Quest" (
     "id" TEXT NOT NULL,
     "characterId" TEXT NOT NULL,
-    "projectId" TEXT,
+    "parentQuestId" TEXT,
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "type" "QuestType" NOT NULL,
@@ -75,19 +76,6 @@ CREATE TABLE "Quest" (
     "completedAt" TIMESTAMP(3),
 
     CONSTRAINT "Quest_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Project" (
-    "id" TEXT NOT NULL,
-    "characterId" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "description" TEXT NOT NULL,
-    "xpEarned" INTEGER NOT NULL DEFAULT 0,
-    "status" TEXT NOT NULL DEFAULT 'ACTIVE',
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "Project_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -112,9 +100,8 @@ CREATE TABLE "ActivityLog" (
     "id" TEXT NOT NULL,
     "characterId" TEXT NOT NULL,
     "questId" TEXT,
-    "startTime" TIMESTAMP(3) NOT NULL,
-    "endTime" TIMESTAMP(3),
-    "durationMin" INTEGER,
+    "workedOn" DATE NOT NULL,
+    "durationMin" INTEGER NOT NULL,
     "notes" TEXT,
     "mood" TEXT,
     "difficulty" INTEGER,
@@ -234,10 +221,7 @@ ALTER TABLE "SkillTree" ADD CONSTRAINT "SkillTree_characterId_fkey" FOREIGN KEY 
 ALTER TABLE "Quest" ADD CONSTRAINT "Quest_characterId_fkey" FOREIGN KEY ("characterId") REFERENCES "Character"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Quest" ADD CONSTRAINT "Quest_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "Project"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Project" ADD CONSTRAINT "Project_characterId_fkey" FOREIGN KEY ("characterId") REFERENCES "Character"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Quest" ADD CONSTRAINT "Quest_parentQuestId_fkey" FOREIGN KEY ("parentQuestId") REFERENCES "Quest"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Resource" ADD CONSTRAINT "Resource_characterId_fkey" FOREIGN KEY ("characterId") REFERENCES "Character"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

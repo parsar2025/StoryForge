@@ -10,7 +10,8 @@ export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
-    seed: "tsx prisma/seed.ts",
+    // No seed script: Phase 1 auto-provisions the character + 11 skill trees
+    // on first `GET /api/character` (CharacterProvisioningService).
   },
   datasource: {
     url: env("DATABASE_URL"),

@@ -34,7 +34,7 @@ storyforge/
 │   └── utils.ts                # Utility functions
 ├── prisma/
 │   └── schema.prisma           # Database schema
-├── middleware.ts               # Auth middleware
+├── proxy.ts                    # Auth middleware (Next.js 16 convention)
 └── [config files]
 ```
 
@@ -82,7 +82,7 @@ See PRD Section 4 for complete schema details.
 
 ### Route Protection Strategy
 
-**Middleware** (`middleware.ts`) handles all route protection:
+**Proxy** (`proxy.ts`) handles all route protection:
 - Public routes: `/login`, static assets
 - Protected routes: `/dashboard` and all future app routes
 - Redirects:
