@@ -16,7 +16,12 @@ storyforge/
 │   ├── (protected)/            # Protected route group
 │   │   └── dashboard/          # Dashboard (requires auth)
 │   ├── api/                    # API route handlers
-│   │   └── auth/sign-out/      # Sign-out endpoint
+│   │   ├── auth/sign-out/      # Sign-out endpoint
+│   │   ├── character/          # GET/PATCH character (auto-provisioned)
+│   │   ├── skill-trees/        # GET the 11 skill trees
+│   │   ├── quests/             # Quest CRUD + [id]/complete (XP flow)
+│   │   ├── activity-log/       # Manual time-entry CRUD + tag filter
+│   │   └── resources/          # Resource CRUD
 │   ├── layout.tsx              # Root layout
 │   ├── page.tsx                # Root page (redirects)
 │   └── globals.css             # Global styles
@@ -26,6 +31,23 @@ storyforge/
 │   ├── ai/                     # AI integration (Phase 3+)
 │   │   ├── client.ts           # Shared AI client
 │   │   └── config.ts           # AI configuration
+│   ├── api/                    # API-layer helpers
+│   │   ├── session.ts          # Auth + character resolution per request
+│   │   ├── errorResponse.ts    # Consistent error JSON + codes
+│   │   └── logger.ts           # Structured error logging
+│   ├── game/                   # Deterministic game mechanics (config-driven)
+│   │   ├── skillTrees.ts       # The 11 tree definitions + sub-skill tags
+│   │   ├── xpEngine.ts         # XP formula + config
+│   │   ├── xpDistribution.ts   # Fair XP split across trees
+│   │   ├── levelFormula.ts     # xpToNextLevel = round(100 * level^1.4)
+│   │   ├── titles.ts           # Character title lookup by level
+│   │   ├── streakCalculator.ts # Consecutive-logged-day streak
+│   │   └── noveltyDetector.ts  # Tree-neglect (14-day) novelty bonus
+│   ├── services/               # Business logic over Prisma
+│   │   ├── characterProvisioning.ts # Idempotent character + 11 trees
+│   │   ├── questCompletion.ts  # Atomic XP award + level-ups
+│   │   ├── activityLog.ts      # Manual time entries + streak cache
+│   │   └── validation.ts       # Tree IDs, sub-skill tags, resource types
 │   ├── supabase/               # Supabase clients
 │   │   ├── client.ts           # Browser client
 │   │   └── server.ts           # Server client
@@ -33,7 +55,8 @@ storyforge/
 │   ├── prisma.ts               # Prisma singleton
 │   └── utils.ts                # Utility functions
 ├── prisma/
-│   └── schema.prisma           # Database schema
+│   ├── schema.prisma           # Database schema
+│   └── migrations/             # Prisma migrations
 ├── proxy.ts                    # Auth middleware (Next.js 16 convention)
 └── [config files]
 ```
@@ -47,8 +70,7 @@ The complete data model is defined in `prisma/schema.prisma`. Key models:
 - **User** - Authentication user record
 - **Character** - Player profile (1:1 with User)
 - **SkillTree** - The 11 leveled skill trees (CORE and SUPPORT categories)
-- **Quest** - Tasks and activities to complete
-- **Project** - Collections of related quests
+- **Quest** - Tasks and activities to complete; multi-step initiatives are EPIC quests grouping sub-quests via `parentQuestId` (there is no separate Project model)
 
 ### Supporting Models
 
@@ -131,7 +153,7 @@ Four AI roles, all sharing `lib/ai/client.ts`:
 - **Dungeon Master** returns quest arrays as JSON
 - **Mentor** streams plain text responses
 
-All use OpenAI API with configurable model in `lib/ai/config.ts`.
+All AI calls go through the shared Anthropic client in `lib/ai/client.ts` (`@anthropic-ai/sdk`), with the model set in `lib/ai/config.ts` (`claude-opus-4-8`). A custom endpoint can be set via the `ANTHROPIC_BASE_URL` env var (the SDK's `baseURL` option); it defaults to `https://api.anthropic.com`. Structured roles use the Messages API; Mentor uses streaming. The client itself is wired in Phase 3 — Phase 1 only ships the config/placeholder.
 
 ## Deterministic Systems
 

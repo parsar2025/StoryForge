@@ -28,7 +28,7 @@ Thank you for your interest in contributing to StoryForge! This document provide
    ```bash
    cp .env.example .env.local
    ```
-   Fill in your Supabase credentials and OpenAI API key.
+   Fill in your Supabase credentials and Anthropic API key (`ANTHROPIC_API_KEY`; the AI roles are wired in Phase 3+).
 
 4. **Run database migrations**
    ```bash

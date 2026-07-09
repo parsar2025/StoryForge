@@ -273,7 +273,31 @@ These will be logged here as they're decided.
 
 ---
 
-## Manual Acceptance (task 10.2) — Deferred
+## Manual Acceptance (task 10.2) — Completed on preview
 
-The Phase 1 manual testing checklist (dev server + live login + full quest loop) has not been executed. It is Phase 1 acceptance criteria for tagging `v0.2.0` and requires a running app against the Supabase DB. Integration tests (tasks 2.4, 2.8, 4.4, 5.6, 6.6, 7.5, 10.1) remain unchecked by decision — no isolated test database is configured, and they are marked optional in `tasks.md`.
+The Phase 1 manual checklist was run against the Vercel **preview** deployment (isolated test Supabase project): auto-provisioned character + 11 trees, quest create → time-entry log → complete with correct XP breakdown (base 55 + reflection 15 + difficulty 20 = 90), even 45/45 two-tree split, tree level-up, and validation 400s. Phase 1 tagged `v0.2.0`. The COMPLETED-quest edit-guard (Req 15.5) was not exercised live (test used a stale id → 404); code path verified by inspection. Integration tests (tasks 2.4, 2.8, 4.4, 5.6, 6.6, 7.5, 10.1) remain unchecked by decision — no isolated test database wired into CI, and they are marked optional in `tasks.md`.
+
+---
+
+## [2026-07-09] AI Provider: Anthropic Claude (not OpenAI)
+
+**Context**: The PRD (Section 3) locked the AI provider as OpenAI, and the Phase 0 scaffolding stubbed `lib/ai/` + `OPENAI_API_KEY` accordingly. Before any AI role is built (Phase 3+), the provider was changed to Anthropic Claude, with a requirement to support a custom API base URL.
+
+**Decision**: Use the Anthropic Claude API as the sole AI provider.
+- SDK: `@anthropic-ai/sdk` (replaces the `openai` dependency).
+- Model: `claude-opus-4-8`, set in `lib/ai/config.ts`.
+- Auth env var: `ANTHROPIC_API_KEY` (replaces `OPENAI_API_KEY`).
+- Custom endpoint: optional `ANTHROPIC_BASE_URL` env var → the SDK's `baseURL` client option; defaults to `https://api.anthropic.com`. Verified against the SDK source (`src/client.ts`: `baseURL = readEnv('ANTHROPIC_BASE_URL')`).
+
+**Scope of this change (docs-only for now)**: Only documentation and `.env.example` are updated in this pass, so later phases wire the right code. The code migration — `lib/ai/config.ts` (model), `lib/ai/client.ts` (instantiate `new Anthropic({ apiKey, baseURL })`), `lib/env.ts` (validate `ANTHROPIC_API_KEY`), and swapping the `openai` dependency for `@anthropic-ai/sdk` in `package.json` — is deferred to Phase 3 when the AI client is first used.
+
+**Consequences**:
+- ✅ Single provider, matches the four-role design (structured Messages API + streaming for Mentor).
+- ✅ Custom base URL supported for gateways/proxies without code changes (env-driven).
+- ⚠️ Diverges from PRD Section 3 (OpenAI) — this decision supersedes it.
+- ⚠️ Temporary inconsistency until Phase 3: `.env.example` says `ANTHROPIC_API_KEY` while `lib/env.ts` still validates `OPENAI_API_KEY`. Harmless now — env validation is commented out in `next.config.ts` — but must be reconciled when the client is wired.
+- ⚠️ Anthropic SDK requires Node.js 20 LTS+ (already required by Next.js 16 / Prisma 7).
+
+**Related**: [[phase-1-api-layer]] shares the `lib/` structure; AI client lands in Phase 3.
+
 
