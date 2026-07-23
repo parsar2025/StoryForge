@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Dashboard aggregate service (`buildDashboard`) and `GET /api/dashboard` — one code path renders the daily dashboard; the server page calls the service directly
+- Deterministic focus signal: highlights the CORE tree with the least trailing-7-day momentum (`lib/game/focusSignal.ts`)
+- Status effects: Momentum (BUFF, streak >= 7 days) and Rusty (DEBUFF, no entry for >= 3 days), reconciled to the `StatusEffect` table by name (`lib/game/statusEffects.ts`, `lib/services/statusEffects.ts`)
+- Character-progress helper (`lib/game/characterProgress.ts`) extracted from quest completion
+- `TypewriterBox` client component with skippable reveal, blinking cursor, and reduced-motion support; pure reveal core in `lib/ui/typewriter.ts`
+- Dashboard UI: character header, grouped Core/Support tree bars, focus banner, status badges, logging reminder, quest list, typewriter demo
+- Property tests for focus signal, status effects, character progress, and typewriter reveal; unit tests for both services
+
 ### Changed
 - AI provider is Anthropic Claude (not OpenAI): docs and `.env.example` now specify `@anthropic-ai/sdk`, model `claude-opus-4-8`, `ANTHROPIC_API_KEY`, and optional `ANTHROPIC_BASE_URL` (SDK `baseURL`). Client/config/dependency code is migrated when the AI client is wired in Phase 3.
 - Documentation refreshed for Phase 1: README status/roadmap to v0.2.0, ARCHITECTURE folder tree + API routes, removed stale `Project` model reference, Node.js requirement corrected to 20.19+.

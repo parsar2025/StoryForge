@@ -300,4 +300,26 @@ The Phase 1 manual checklist was run against the Vercel **preview** deployment (
 
 **Related**: [[phase-1-api-layer]] shares the `lib/` structure; AI client lands in Phase 3.
 
+---
 
+## [2026-07-23] Phase 2 Dashboard: Derived Metrics and Reconciled Status Effects
+
+**Context**: Phase 2 adds the daily dashboard, a focus signal, and status effects. These need trailing-window XP per tree and persisted buff/debuff state, but the PRD forbids schema changes and AI calls in this phase.
+
+**Decision**:
+- **Trailing-7-day XP is derived, not stored.** Summed on read from completed quests' `ActivityLog.xpAwarded`, redistributed via Phase 1's `distributeXP` across each quest's `relatedTreeIds`. No new column, no history table.
+- **Focus signal = CORE tree with least trailing-7-day momentum.** Tie-break `(trailingXp, level, xp, key)` ascending. Chose "least momentum" over "lowest level" as the primary rule (PRD §5.5 allows either); level is the secondary tie-break.
+- **Status-effect thresholds live in config.** `STATUS_EFFECT_CONFIG` (streak >= 7 → Momentum, idle >= 3 days → Rusty); `FOCUS_CONFIG.TRAILING_DAYS = 7`.
+- **Status effects reconciled by name, in app code.** The `StatusEffect` model has no unique constraint, so `reconcileStatusEffects` diffs desired-vs-existing by `(characterId, name)` inside a transaction: delete stale, create missing, dedupe to one row per name.
+- **One request to render.** The server page calls `buildDashboard` directly; `GET /api/dashboard` calls the same function. No self-fetch.
+- **`StatusEffect.expiresAt` is unused in Phase 2.** Effects are recomputed every load, so no expiry sweep is needed yet.
+
+**Consequences**:
+- ✅ No migration; Phase 2 is purely additive code.
+- ✅ Metrics always consistent with the source of truth (activity logs), never stale.
+- ⚠️ Trailing XP is recomputed each load — acceptable at current scale; revisit if quest volume grows.
+- ⚠️ Reconciliation-by-name is not race-safe under concurrent loads for one character; acceptable for a single-user session, revisit if that changes.
+
+**Testing note**: jest runs node-only (no jsdom / `@testing-library/react`). `TypewriterBox` is verified via its pure core (`lib/ui/typewriter.ts`) and a manual checklist, not a rendered-component test.
+
+**Related**: [[phase-1-api-layer]] provides `distributeXP` and the level formula reused here.
