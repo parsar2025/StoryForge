@@ -15,35 +15,12 @@
 import { prisma } from '@/lib/prisma';
 import { computeXP, type XPEngineInput, type XPEngineOutput } from '@/lib/game/xpEngine';
 import { computeXpToNextLevel } from '@/lib/game/levelFormula';
+import { computeLevelFromCumulativeXp } from '@/lib/game/characterProgress';
 import { getTitleForLevel } from '@/lib/game/titles';
 import { distributeXP } from '@/lib/game/xpDistribution';
 import { computeStreak } from '@/lib/game/streakCalculator';
 import { detectNovelTrees } from '@/lib/game/noveltyDetector';
 import type { Quest, SkillTree } from '@prisma/client';
-
-/**
- * Compute character level from cumulative total XP.
- * 
- * Character level is derived from totalXp by subtracting thresholds starting from level 1.
- * This ensures level-ups happen at exactly the right cumulative XP values specified by
- * the exponential curve (100, 364, 830, ...) regardless of how XP was gained.
- * 
- * @param cumulativeXp - Lifetime total XP earned
- * @returns Character level (minimum 1)
- */
-function computeLevelFromCumulativeXp(cumulativeXp: number): number {
-  let level = 1;
-  let remaining = cumulativeXp;
-  let threshold = computeXpToNextLevel(level);
-  
-  while (remaining >= threshold) {
-    remaining -= threshold;
-    level++;
-    threshold = computeXpToNextLevel(level);
-  }
-  
-  return level;
-}
 
 /**
  * Result of quest completion with all affected entities and XP breakdown.
