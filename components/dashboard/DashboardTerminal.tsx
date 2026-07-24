@@ -64,15 +64,15 @@ export function DashboardTerminal({ data }: { data: DashboardPayload }) {
   return (
     <div className="flex flex-col min-h-screen bg-black text-green-400/90 font-mono">
       {/* ── header bar ── */}
-      <header className="border-b border-green-900 px-3 sm:px-5 py-2 flex items-center justify-between gap-2">
+      <header className="border-b border-green-900 px-3 sm:px-5 py-2 flex items-center justify-between gap-3">
         <span className="text-green-300 font-bold tracking-wider text-sm sm:text-base shrink-0">
           STORYFORGE
         </span>
 
-        <div className="flex items-center gap-1 overflow-hidden">
+        <div className="flex items-center gap-1.5 flex-wrap justify-center flex-1 min-w-0 px-2">
           <Stat className="text-green-400">Lv{c.level}</Stat>
           <Separator />
-          <Stat className="text-green-600 truncate max-w-[120px] sm:max-w-none">{c.currentTitle}</Stat>
+          <Stat className="text-green-600">{c.currentTitle}</Stat>
           <Separator />
           <Stat className="text-green-300">◆ {c.streakDays}d</Stat>
           {hasEffects &&
