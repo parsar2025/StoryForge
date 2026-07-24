@@ -3,8 +3,8 @@
 /**
  * TypewriterBox
  *
- * Reveals already-existing server-side text character by character with a
- * blinking cursor (PRD Section 11). Click / Enter / Space skips to full text.
+ * Reveals already-existing text character by character with a blinking cursor
+ * (PRD Section 11). Click / Enter / Space skips to full text.
  * Respects prefers-reduced-motion. Reveal progression comes from the pure
  * revealedSubstring helper so tested logic and rendered behavior can't diverge.
  *
@@ -13,13 +13,13 @@
 
 import * as React from 'react';
 import { revealedSubstring } from '@/lib/ui/typewriter';
-import { cn } from '@/lib/utils';
 
 export interface TypewriterBoxProps {
   text: string;
   speedMs?: number;
   onComplete?: () => void;
-  className?: string;
+  /** When true, renders as a bare <pre> block — no card, border, or cursor. */
+  usePre?: boolean;
 }
 
 function prefersReducedMotion(): boolean {
@@ -30,13 +30,16 @@ function prefersReducedMotion(): boolean {
   );
 }
 
-export function TypewriterBox({ text, speedMs = 18, onComplete, className }: TypewriterBoxProps) {
+export function TypewriterBox({
+  text,
+  speedMs = 18,
+  onComplete,
+  usePre = false
+}: TypewriterBoxProps) {
   const [visible, setVisible] = React.useState('');
-  const [done, setDone] = React.useState(false);
   const completedRef = React.useRef(false);
   const rafRef = React.useRef<number | null>(null);
 
-  // Latest onComplete without retriggering the reveal effect.
   const onCompleteRef = React.useRef(onComplete);
   React.useEffect(() => {
     onCompleteRef.current = onComplete;
@@ -45,14 +48,12 @@ export function TypewriterBox({ text, speedMs = 18, onComplete, className }: Typ
   const fireComplete = React.useCallback(() => {
     if (completedRef.current) return;
     completedRef.current = true;
-    setDone(true);
     onCompleteRef.current?.();
   }, []);
 
   // Reveal loop. Restarts whenever text or speed changes (Requirement 10.6).
   React.useEffect(() => {
     completedRef.current = false;
-    setDone(false);
 
     if (text.length === 0) {
       setVisible('');
@@ -61,7 +62,6 @@ export function TypewriterBox({ text, speedMs = 18, onComplete, className }: Typ
     }
 
     if (prefersReducedMotion()) {
-      // Reduced motion: full text immediately, no animation (Requirement 12).
       setVisible(text);
       fireComplete();
       return;
@@ -107,32 +107,48 @@ export function TypewriterBox({ text, speedMs = 18, onComplete, className }: Typ
 
   const reduced = prefersReducedMotion();
 
+  // Terminal mode: bare <pre> with cursor
+  if (usePre) {
+    return (
+      <pre
+        role="button"
+        tabIndex={0}
+        aria-label="Text reveal"
+        onClick={skip}
+        onKeyDown={handleKeyDown}
+        className="whitespace-pre-wrap cursor-pointer focus:outline-none"
+      >
+        {visible}
+        {!reduced && (
+          <span aria-hidden className="inline-block w-[0.6ch] bg-green-400" style={{ height: '1em' }}>
+            &nbsp;
+          </span>
+        )}
+      </pre>
+    );
+  }
+
+  // Default mode (kept for backward compat / other uses)
   return (
     <div
       role="button"
       tabIndex={0}
-      aria-label={done ? undefined : 'Skip typing animation'}
-      title={done ? undefined : 'Click to reveal'}
+      aria-label="Text reveal"
+      title="Click to reveal"
       onClick={skip}
       onKeyDown={handleKeyDown}
-      className={cn(
-        'font-mono whitespace-pre-wrap rounded-md border border-border bg-card p-4 text-sm leading-relaxed text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring',
-        className
-      )}
+      className="font-mono whitespace-pre-wrap cursor-pointer focus:outline-none"
     >
       {visible}
-      <span
-        aria-hidden
-        className={cn(
-          'inline-block w-[0.6ch] -mb-[2px] bg-primary',
-          reduced ? 'opacity-0' : 'animate-pulse'
-        )}
-        style={{ height: '1em' }}
-      >
-        &nbsp;
-      </span>
+      {!reduced && (
+        <span
+          aria-hidden
+          className="inline-block w-[0.6ch] -mb-[2px] bg-primary animate-pulse"
+          style={{ height: '1em' }}
+        >
+          &nbsp;
+        </span>
+      )}
     </div>
   );
 }
-
-export default TypewriterBox;

@@ -5,16 +5,11 @@
 @layer base {
   :root {
     --font-mono: ui-monospace, Menlo, Monaco, 'Cascadia Code', 'Source Code Pro', 'Courier New', monospace;
-    --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   }
 
-  * {
-    border-color: hsl(210, 40%, 25%);
-  }
-  
   body {
-    background-color: hsl(220, 15%, 8%);
-    color: hsl(210, 40%, 98%);
-    font-family: var(--font-sans);
+    background-color: #000;
+    color: hsl(210, 40%, 92%);
+    font-family: var(--font-mono);
   }
 }
