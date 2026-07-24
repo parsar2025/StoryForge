@@ -4,7 +4,7 @@
 
 StoryForge is an RPG-style application that gamifies your entrepreneurial journey. Real actions (customer calls, shipped features, reading) become quests, XP, skill growth, and a narrated story.
 
-![Version](https://img.shields.io/badge/version-0.2.0-blue)
+![Version](https://img.shields.io/badge/version-0.3.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 ## ✨ Features
@@ -19,7 +19,7 @@ StoryForge is an RPG-style application that gamifies your entrepreneurial journe
 
 - **Framework**: Next.js 16 (App Router, Turbopack)
 - **Language**: TypeScript (strict mode)
-- **Styling**: Tailwind CSS + shadcn/ui
+- **Styling**: Tailwind CSS
 - **Database**: PostgreSQL (via Supabase)
 - **ORM**: Prisma
 - **Authentication**: Supabase Auth
