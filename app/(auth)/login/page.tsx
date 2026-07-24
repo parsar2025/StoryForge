@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
 const BANNER = `
-╔══════════════════════════════════════════════════════════════╗
-║                       STORYFORGE                            ║
-║  Become the protagonist of your own entrepreneurial journey ║
-╚══════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════╗
+║                   STORYFORGE                        ║
+║  Become the protagonist of your own entrepreneurial ║
+║  journey.                                           ║
+╚══════════════════════════════════════════════════════╝
 `;
 
 export default function LoginPage() {
@@ -45,47 +46,48 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-black text-green-400/90 font-mono">
-      {/* Centered content */}
-      <div className="flex-1 flex items-center justify-center px-4">
-        <div className="w-full max-w-lg">
-          {/* ASCII banner */}
-          <pre className="text-green-400 text-xs sm:text-sm leading-tight mb-8 whitespace-pre overflow-x-auto">
-            {BANNER}
-          </pre>
+      <div className="flex-1 flex items-center justify-center px-4 py-6">
+        <div className="w-full max-w-xs sm:max-w-sm">
+          {/* Centered banner */}
+          <div className="flex justify-center mb-12">
+            <pre className="text-green-400 text-[10px] sm:text-xs leading-tight whitespace-pre">
+              {BANNER}
+            </pre>
+          </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="text-green-600 text-sm">$ email</label>
+              <label className="block text-green-700 text-xs mb-1.5">$ email</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoFocus
-                className="block w-full bg-black border border-green-800 text-green-400 px-3 py-2 mt-1
-                           focus:outline-none focus:border-green-500 focus:ring-0
+                className="w-full bg-black border border-green-800 text-green-400 px-3 py-2
+                           focus:outline-none focus:border-green-500
                            placeholder-green-800 text-sm"
                 placeholder="you@example.com"
               />
             </div>
 
             <div>
-              <label className="text-green-600 text-sm">$ password</label>
+              <label className="block text-green-700 text-xs mb-1.5">$ password</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="block w-full bg-black border border-green-800 text-green-400 px-3 py-2 mt-1
-                           focus:outline-none focus:border-green-500 focus:ring-0
+                className="w-full bg-black border border-green-800 text-green-400 px-3 py-2
+                           focus:outline-none focus:border-green-500
                            placeholder-green-800 text-sm"
                 placeholder="••••••••"
               />
             </div>
 
             {error && (
-              <div className="text-red-500 text-sm border border-red-900 px-3 py-2">
+              <div className="text-red-400 text-xs border border-red-900 bg-red-950/20 px-3 py-2">
                 ! {error}
               </div>
             )}
@@ -93,23 +95,23 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full border border-green-700 text-green-400 px-4 py-2
+              className="w-full border border-green-700 text-green-400 px-4 py-2.5
                          hover:bg-green-950 hover:text-green-300
                          disabled:opacity-40 disabled:cursor-not-allowed
-                         text-sm transition-colors"
+                         text-sm transition-colors focus:outline-none focus:border-green-500"
             >
               {loading ? '$ signing_in...' : '$ sign_in'}
             </button>
           </form>
 
-          <div className="mt-8 text-center text-green-900 text-xs">
+          <div className="mt-10 text-center text-green-900 text-[10px] leading-relaxed">
+            {`─`.repeat(28)}<br />
             Phase 0 - Authentication
           </div>
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="border-t border-green-900 px-4 py-2 text-green-800 text-xs text-center">
+      <footer className="border-t border-green-900 px-4 py-2 text-green-800 text-[10px] text-center">
         STORYFORGE v0.3
       </footer>
     </div>
