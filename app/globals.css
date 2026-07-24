@@ -12,4 +12,32 @@
     color: hsl(210, 40%, 92%);
     font-family: var(--font-mono);
   }
+
+  ::selection {
+    background-color: rgba(74, 222, 128, 0.2);
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #000;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #166534;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #15803d;
+  }
+}
+
+@layer utilities {
+  .animate-terminal-blink {
+    animation: terminal-blink 1s step-end infinite;
+  }
+}
+
+@keyframes terminal-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }

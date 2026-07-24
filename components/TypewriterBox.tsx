@@ -18,7 +18,7 @@ export interface TypewriterBoxProps {
   text: string;
   speedMs?: number;
   onComplete?: () => void;
-  /** When true, renders as a bare <pre> block — no card, border, or cursor. */
+  /** When true, renders as a bare <pre> block with blinking cursor. */
   usePre?: boolean;
 }
 
@@ -120,7 +120,7 @@ export function TypewriterBox({
       >
         {visible}
         {!reduced && (
-          <span aria-hidden className="inline-block w-[0.6ch] bg-green-400" style={{ height: '1em' }}>
+          <span aria-hidden className="inline-block w-[0.6ch] bg-green-400 animate-terminal-blink" style={{ height: '1em' }}>
             &nbsp;
           </span>
         )}
@@ -143,7 +143,7 @@ export function TypewriterBox({
       {!reduced && (
         <span
           aria-hidden
-          className="inline-block w-[0.6ch] -mb-[2px] bg-primary animate-pulse"
+          className="inline-block w-[0.6ch] bg-green-400 animate-terminal-blink"
           style={{ height: '1em' }}
         >
           &nbsp;

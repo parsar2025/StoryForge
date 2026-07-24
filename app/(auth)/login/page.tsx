@@ -3,7 +3,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Button } from '@/components/ui/button';
+
+const BANNER = `
+╔══════════════════════════════════════════════════════════════╗
+║                       STORYFORGE                            ║
+║  Become the protagonist of your own entrepreneurial journey ║
+╚══════════════════════════════════════════════════════════════╝
+`;
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -30,7 +36,7 @@ export default function LoginPage() {
         router.push('/dashboard');
         router.refresh();
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred');
     } finally {
       setLoading(false);
@@ -38,69 +44,74 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-primary">StoryForge</h1>
-          <p className="mt-2 text-muted-foreground">
-            Become the protagonist of your own entrepreneurial journey
-          </p>
-        </div>
+    <div className="min-h-screen flex flex-col bg-black text-green-400/90 font-mono">
+      {/* Centered content */}
+      <div className="flex-1 flex items-center justify-center px-4">
+        <div className="w-full max-w-lg">
+          {/* ASCII banner */}
+          <pre className="text-green-400 text-xs sm:text-sm leading-tight mb-8 whitespace-pre overflow-x-auto">
+            {BANNER}
+          </pre>
 
-        <div className="bg-card border border-border rounded-lg p-8 shadow-lg">
-          <h2 className="text-2xl font-semibold mb-6">Sign In</h2>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-2">
-                Email
-              </label>
+              <label className="text-green-600 text-sm">$ email</label>
               <input
-                id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-3 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+                autoFocus
+                className="block w-full bg-black border border-green-800 text-green-400 px-3 py-2 mt-1
+                           focus:outline-none focus:border-green-500 focus:ring-0
+                           placeholder-green-800 text-sm"
                 placeholder="you@example.com"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-2">
-                Password
-              </label>
+              <label className="text-green-600 text-sm">$ password</label>
               <input
-                id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-3 py-2 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+                className="block w-full bg-black border border-green-800 text-green-400 px-3 py-2 mt-1
+                           focus:outline-none focus:border-green-500 focus:ring-0
+                           placeholder-green-800 text-sm"
                 placeholder="••••••••"
               />
             </div>
 
             {error && (
-              <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded-md text-sm">
-                {error}
+              <div className="text-red-500 text-sm border border-red-900 px-3 py-2">
+                ! {error}
               </div>
             )}
 
-            <Button
+            <button
               type="submit"
               disabled={loading}
-              className="w-full"
+              className="w-full border border-green-700 text-green-400 px-4 py-2
+                         hover:bg-green-950 hover:text-green-300
+                         disabled:opacity-40 disabled:cursor-not-allowed
+                         text-sm transition-colors"
             >
-              {loading ? 'Signing in...' : 'Sign In'}
-            </Button>
+              {loading ? '$ signing_in...' : '$ sign_in'}
+            </button>
           </form>
-        </div>
 
-        <p className="text-center text-sm text-muted-foreground">
-          Phase 0 - Authentication Test
-        </p>
+          <div className="mt-8 text-center text-green-900 text-xs">
+            Phase 0 - Authentication
+          </div>
+        </div>
       </div>
+
+      {/* Footer */}
+      <footer className="border-t border-green-900 px-4 py-2 text-green-800 text-xs text-center">
+        STORYFORGE v0.3
+      </footer>
     </div>
   );
 }
