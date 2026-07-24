@@ -1,120 +1,167 @@
 'use client';
 
 /**
- * DashboardTerminal — one TypewriterBox reveals the full dashboard text.
- * Edge-to-edge green-on-black terminal. No cards, no chrome.
+ * DashboardTerminal — full-page terminal-styled dashboard.
+ * Proper CSS layout (no ASCII blob), responsive, real progress bars.
+ * Only the Daily Briefing section uses the typewriter reveal.
  */
 
 import * as React from 'react';
 import { TypewriterBox } from '@/components/TypewriterBox';
 import type { DashboardPayload } from '@/lib/services/dashboard';
 
-export function DashboardTerminal({ data }: { data: DashboardPayload }) {
-  const ascii = buildTerminalText(data);
+// ── helpers ────────────────────────────────────────────────────
 
+function pct(num: number, den: number): number {
+  return den > 0 ? Math.round((num / den) * 100) : 0;
+}
+
+function ProgressBar({ value, className = '' }: { value: number; className?: string }) {
+  const clamped = Math.min(Math.max(value, 0), 100);
+  const color =
+    clamped >= 60 ? 'bg-green-500' : clamped >= 25 ? 'bg-yellow-600' : 'bg-red-700';
   return (
-    <div className="flex flex-col min-h-screen bg-black text-green-400 font-mono">
-      <div className="flex-1 overflow-y-auto px-1 py-1">
-        <TypewriterBox speedMs={3} text={ascii} usePre={true} />
-      </div>
-      <div className="border-t border-green-800 px-1 py-2">
-        <form action="/api/auth/sign-out" method="post">
-          <button
-            type="submit"
-            className="text-green-600 hover:text-green-400 text-sm underline underline-offset-2"
-          >
-            $ sign_out
-          </button>
-        </form>
-      </div>
+    <div className={`h-2 bg-green-950 ${className}`}>
+      <div
+        className={`h-full ${color} transition-all duration-700`}
+        style={{ width: `${clamped}%` }}
+      />
     </div>
   );
 }
 
-const BAR_W = 20;
-
-function xpBar(num: number, den: number): string {
-  if (den <= 0) return `[${'='.repeat(BAR_W)}]`;
-  const f = Math.round((num / den) * BAR_W);
-  return `[${'='.repeat(Math.min(f, BAR_W))}${'.'.repeat(BAR_W - Math.min(f, BAR_W))}]`;
-}
-
-function treeLine(tree: DashboardPayload['trees']['core'][0]): string {
-  const pct = tree.xpToNextLevel > 0 ? Math.round((tree.xp / tree.xpToNextLevel) * 100) : 0;
-  const bar = xpBar(tree.xp, tree.xpToNextLevel);
-  const name = `${tree.emoji} ${tree.displayName}`.padEnd(28);
-  return `  ${name} ${bar}  Lv${String(tree.level).padStart(2)}  ${String(pct).padStart(2)}%  ${String(tree.xp).padStart(4)}/${tree.xpToNextLevel}`;
-}
-
-function buildTerminalText(data: DashboardPayload): string {
-  const lines: string[] = [];
-
-  // Title banner
-  lines.push(
-    '┌─────────────────────────────────────────────────────────────┐',
-    '│  STORYFORGE                                                 │',
-    '│  Become the protagonist of your own entrepreneurial journey │',
-    '└─────────────────────────────────────────────────────────────┘',
-    '',
+function TreeRow({ tree }: { tree: DashboardPayload['trees']['core'][0] }) {
+  const p = pct(tree.xp, tree.xpToNextLevel);
+  return (
+    <div className="space-y-1">
+      <div className="flex justify-between text-xs sm:text-sm">
+        <span className="text-green-400 truncate mr-2">
+          {tree.emoji} {tree.displayName}
+        </span>
+        <span className="text-green-500 shrink-0">
+          Lv{tree.level}  {p}%  {tree.xp}/{tree.xpToNextLevel} XP
+        </span>
+      </div>
+      <ProgressBar value={p} />
+    </div>
   );
+}
 
-  // Character header
+// ── main component ─────────────────────────────────────────────
+
+export function DashboardTerminal({ data }: { data: DashboardPayload }) {
   const c = data.character;
-  const xpPct = c.xpToNextLevel > 0 ? Math.round((c.xpIntoLevel / c.xpToNextLevel) * 100) : 0;
-  const xpBarStr = xpBar(c.xpIntoLevel, c.xpToNextLevel);
-  const effects = data.statusEffects.map(e => `${e.type === 'BUFF' ? '+' : '-'}${e.name}`).join('  ');
-  const effectsStr = effects ? `  [[ ${effects} ]]` : '';
+  const effects = data.statusEffects
+    .map(e => (e.type === 'BUFF' ? '+' : '-') + e.name)
+    .join('  ');
 
-  lines.push(
-    `${c.name}  |  ${c.currentTitle}  |  Level ${c.level}`,
-    `${xpBarStr}  ${xpPct}%  (${c.xpIntoLevel}/${c.xpToNextLevel} XP)`,
-    `Streak: ${c.streakDays} day${c.streakDays === 1 ? '' : 's'}${effectsStr}`,
-    '',
+  return (
+    <div className="flex flex-col min-h-screen bg-black text-green-400/90 font-mono text-sm">
+      {/* ── header bar ── */}
+      <header className="border-b border-green-900 px-3 sm:px-5 py-2 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <span className="text-green-300 font-bold tracking-wider text-sm sm:text-base">
+          STORYFORGE v0.3
+        </span>
+        <div className="text-xs sm:text-sm text-green-500 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <span>Lv{c.level}</span>
+          <span className="text-green-600">{c.currentTitle}</span>
+          <span>◆ {c.streakDays}d streak</span>
+          {effects && <span className="text-green-400">[[ {effects} ]]</span>}
+        </div>
+      </header>
+
+      {/* ── main content (scrollable) ── */}
+      <main className="flex-1 overflow-y-auto px-3 sm:px-5 py-4 space-y-5">
+        {/* Focus signal */}
+        {data.focusSignal && (
+          <div className="text-green-400 border-l-2 border-green-600 pl-3 py-1">
+            ⚡ {data.focusSignal.message}
+          </div>
+        )}
+
+        {/* Same-day reminder */}
+        {!data.loggedToday && (
+          <div className="text-yellow-600 border-l-2 border-yellow-700 pl-3 py-1">
+            ! Nothing logged today yet — a quick entry keeps your story up to date.
+          </div>
+        )}
+
+        {/* ── Core trees ── */}
+        <section>
+          <h2 className="text-green-700 text-xs tracking-widest mb-3 border-b border-green-900 pb-1">
+            // CORE
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
+            {data.trees.core.map(t => (
+              <TreeRow key={t.id} tree={t} />
+            ))}
+          </div>
+        </section>
+
+        {/* ── Support trees ── */}
+        <section>
+          <h2 className="text-green-700 text-xs tracking-widest mb-3 border-b border-green-900 pb-1">
+            // SUPPORT
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
+            {data.trees.support.map(t => (
+              <TreeRow key={t.id} tree={t} />
+            ))}
+          </div>
+        </section>
+
+        {/* ── Active quests ── */}
+        <section>
+          <h2 className="text-green-700 text-xs tracking-widest mb-3 border-b border-green-900 pb-1">
+            // ACTIVE QUESTS
+          </h2>
+          {data.quests.length === 0 ? (
+            <div className="text-green-800 text-xs">
+              No active quests. Create one to start earning XP.
+            </div>
+          ) : (
+            <ul className="space-y-1">
+              {data.quests.map(q => (
+                <li key={q.id} className="flex items-baseline gap-2 text-xs sm:text-sm">
+                  <span className="text-green-600">{q.status === 'ACTIVE' ? '▶' : '○'}</span>
+                  <span className="truncate">{q.title}</span>
+                  <span className="text-green-700 shrink-0">[{q.type}]</span>
+                  <span className="text-green-800 shrink-0">d{q.difficulty}</span>
+                  <span className="text-green-800 shrink-0">~{q.estimatedMinutes}m</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        {/* ── Daily Briefing (typewriter reveal) ── */}
+        <section className="border border-green-900 p-3 sm:p-4">
+          <h3 className="text-green-700 text-xs tracking-widest mb-2">
+            // DAILY BRIEFING
+          </h3>
+          <TypewriterBox
+            text="The forge glows. Another day begins, and the ledger of your journey waits to be written. Log your work, complete your quests, and watch the story take shape — one deliberate action at a time."
+            speedMs={18}
+          />
+        </section>
+      </main>
+
+      {/* ── footer command bar ── */}
+      <footer className="border-t border-green-900 px-3 sm:px-5 py-2 flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div className="flex gap-3 text-green-700">
+          <span>[Q] Quests</span>
+          <span>[S] Skills</span>
+          <span>[R] Resources</span>
+        </div>
+        <form action="/api/auth/sign-out" method="post">
+          <button
+            type="submit"
+            className="text-green-600 hover:text-green-400 underline underline-offset-2"
+          >
+            $ sign_out
+          </button>
+        </form>
+      </footer>
+    </div>
   );
-
-  // Focus signal
-  if (data.focusSignal) {
-    lines.push(`== ${data.focusSignal.message} ==`);
-    lines.push('');
-  }
-
-  // Same-day logging reminder
-  if (!data.loggedToday) {
-    lines.push('!  Nothing logged today yet — a quick entry keeps your story up to date.');
-    lines.push('');
-  }
-
-  // Tree groups
-  lines.push('── Core ─────────────────────────────────────────────────');
-  for (const t of data.trees.core) {
-    lines.push(treeLine(t));
-  }
-  lines.push('');
-  lines.push('── Support ──────────────────────────────────────────────');
-  for (const t of data.trees.support) {
-    lines.push(treeLine(t));
-  }
-  lines.push('');
-
-  // Quest list
-  lines.push('── Active Quests ────────────────────────────────────────');
-  if (data.quests.length === 0) {
-    lines.push('  No active quests. Create one to start earning XP.');
-  } else {
-    for (const q of data.quests) {
-      const bullet = q.status === 'ACTIVE' ? '▶' : '○';
-      lines.push(`  ${bullet} ${q.title}  [${q.type}]  diff ${q.difficulty}  ~${q.estimatedMinutes}min`);
-    }
-  }
-  lines.push('');
-
-  // Daily Briefing placeholder
-  lines.push('── Daily Briefing ────────────────────────────────────────');
-  lines.push('  The forge glows. Another day begins, and the ledger of your');
-  lines.push('  journey waits to be written. Log your work, complete your');
-  lines.push('  quests, and watch the story take shape — one deliberate');
-  lines.push('  action at a time.');
-  lines.push('');
-
-  return lines.join('\n');
 }
